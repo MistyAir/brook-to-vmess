@@ -1,6 +1,33 @@
 #include <iostream>
 #include <cstring>
+#include <sys/types.h>
 using namespace std;
+int jugde(pid_t status) {
+    if (-1 == status)
+    {
+        printf("system error!");
+    }
+    else
+    {
+        printf("exit status value = [0x%x]\n", status);
+ 
+        if (WIFEXITED(status))
+        {
+            if (0 == WEXITSTATUS(status))
+            {
+                printf("run shell script successfully.\n");
+            }
+            else
+            {
+                printf("run shell script fail, script exit code: %d\n", WEXITSTATUS(status));
+            }
+        }
+        else
+        {
+            printf("exit status = [%d]\n", WEXITSTATUS(status));
+        }
+    }
+}
 int Help();
 int Menu();
 int BrookInstall();
@@ -30,6 +57,9 @@ int Help() {
     exit(0);
 }
 int BrookInstall() {
+    system("wget -O ~/brook https://github.com/MistyAir/brook-to-vmess/blob/main/brook/brook");
+    system("ln -s /usr/local/bin/brook ~/brook");
+
     return 0;
 }
 int Menu() {
