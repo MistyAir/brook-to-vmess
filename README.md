@@ -20,4 +20,18 @@
     Make sure both of the two servers are able to connect to Github services. 
 
 ## 使用指南 Using Guide
+    使用root用户登录
+    Login as root
+
+    目标服务器 / destination server
+    wget https://github.com/MistyAir/brook-to-vmess/releases/download/v0.1-alpha/brookTov2ray
+    ./brookTov2ray vi
+    ./brookTov2ray rv
     
+    中转服务器 / steady Server
+    wget https://github.com/MistyAir/brook-to-vmess/releases/download/v0.1-alpha/brookTov2ray
+    ./brookTov2ray bi
+    ./brookTov2ray rb
+
+    在设备上设置代理
+    set proxy in your devices
