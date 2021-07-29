@@ -1,8 +1,10 @@
 #include <iostream>
 #include <cstring>
 #include <sys/types.h>
+#include <sys/wait.h>
+#include <fstream>
 using namespace std;
-int jugde(pid_t status) {
+int judge(pid_t status) {
     if (-1 == status)
     {
         printf("system error!");
@@ -27,48 +29,94 @@ int jugde(pid_t status) {
             printf("exit status = [%d]\n", WEXITSTATUS(status));
         }
     }
+    return WEXITSTATUS(status);
 }
 int Help();
-int Menu();
 int BrookInstall();
 int BrookManagement();
 int v2rayInstall();
 int v2rayManagement();
 int main(int argc, char const *argv[]) {
     /* code */
-    if (argc == 0)
+    if (argc == 1) {
         Help();
-    if (argc >= 1) {
-        if (strcmp(argv[0], "menu") == 0) {
-            Menu();
-        }
-        else if (strcmp(argv[0], "bi") == 0) {
+    }
+    if (argc >= 2) {
+        if (strcmp(argv[1], "bi") == 0) {
             BrookInstall();
+        }
+        else if (strcmp(argv[1], "rb") == 0) {
+            BrookManagement();
+        }
+        else if (strcmp(argv[1], "vi") == 0) {
+            v2rayInstall();
+        }
+        else if (strcmp(argv[1], "rv") == 0) {
+            v2rayManagement();
         }
     }
     return 0;
 }
 int Help() {
-    cout << "menu 菜单 / Menu \
-    bi 安装brook / brook install \
-    bm 管理brook / brook management \
-    vi 安装v2ray / v2ray install \
-    vm 管理v2ray / v2ray management\n";
+    cout << "bi 安装brook / brook installation \n\
+rb 启动brook / run brook \n\
+vi 安装v2ray / v2ray installation \n\
+rv 管理v2ray / run v2ray\n";
     exit(0);
 }
 int BrookInstall() {
-    system("wget -O ~/brook https://github.com/MistyAir/brook-to-vmess/blob/main/brook/brook");
-    system("ln -s /usr/local/bin/brook ~/brook");
-
+    int returnValue = judge(
+        system("ls /usr/local/bin | grep -w brook")
+    );
+    if (!returnValue) {
+        returnValue = judge(
+            system("rm /usr/local/bin/brook")
+        );
+    }
+    returnValue = judge(
+        system("wget -O /usr/local/bin/brook https://github.com/MistyAir/brook-to-vmess/blob/main/brook/brook")
+    );
+    cout << "file 'brook' is stored in /usr/local/bin/ \n";
     return 0;
 }
-int Menu() {
-    cout << "1. 安装brook / brook install \
-    2. 管理brook / brook management \
-    3. 安装v2ray / v2ray install \
-    4. 管理v2ray / v2ray management\n";
-    cout << "Choice:";
-    int choice;
-    cin >> choice;
+int BrookManagement() {
+    cout << "listen port:";
+    string port;
+    cin >> port;
+    cout << "destination address or domain:";
+    string addr;
+    cin >> addr;
+    cout << "destination port:";
+    string desPort;
+    cin >> desPort;
+    system(("/usr/local/bin/brook relay -f :" + port + " -t " + addr + ":" + desPort + " &").c_str());
+    return 0;
+}
+int v2rayInstall() {
+    system("bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)");
+    system("systemctl enable v2ray;systemctl start v2ray");
+    return 0;
+}
+int v2rayManagement() {
+    ofstream outfile;
+    outfile.open("/usr/local/etc/v2ray/config.json");
+    outfile << "{\
+\"inbounds\": [{\
+\"port\": 10086, // 服务器监听端口，必须和上面的一样\
+\"protocol\": \"vmess\",\
+\"settings\": {\
+\"clients\": [{ \"id\": \"b831381d-6324-4d53-ad4f-8cda48b30811\" }]\
+}\
+}],\
+\"outbounds\": [{\
+\"protocol\": \"freedom\",\
+\"settings\": {}\
+}]\
+}";
+    outfile.close();
+    cout << "id:b831381d-6324-4d53-ad4f-8cda48b30811\n\
+protocol:vmess\n\
+port:10086\n";
+    system("systemctl restart v2ray");
     return 0;
 }
